@@ -81,3 +81,29 @@ header h1 {
     flex-direction: column;
   }
 }
+
+.section {
+  margin-bottom: 16px;
+}
+
+.seat-row {
+  display: flex;
+  gap: 4px;
+  margin-bottom: 4px;
+}
+
+.seat {
+  width: 32px;
+  height: 32px;
+  font-size: 12px;
+  cursor: pointer;
+  border: 1px solid #888;
+  border-radius: 4px;
+  background: #d9f2d9;
+}
+
+.seat.unavailable {
+  background: #ccc;
+  color: #777;
+  cursor: not-allowed;
+}
