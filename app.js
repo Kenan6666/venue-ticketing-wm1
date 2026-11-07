@@ -1,5 +1,3 @@
-
-
 const venue = {
   name: 'Theatre',
   currency: 'AZN',
@@ -42,11 +40,21 @@ const venue = {
 console.log('Venue loaded:', venue.name);
 
 
-const seatsContainer = document.getElementById('seats');
 
+const seatsContainer = document.getElementById('seats');
+const seatInfo = document.getElementById('seat-info');
+const addToCartButton = document.getElementById('add-to-cart');
+
+
+// Stores every seat button so we can find it by ID later
+const seatButtons = new Map();
+
+// The seat currently being inspected (null if none)
+let inspectedSeatId = null;
 // Build all seat buttons from the venue data
 function renderVenue() {
   seatsContainer.innerHTML = '';
+  seatButtons.clear();
 
   venue.sections.forEach((section) => {
     const sectionEl = document.createElement('div');
@@ -62,17 +70,27 @@ function renderVenue() {
 
       for (let seat = 1; seat <= section.seatsPerRow; seat++) {
         const seatId = `${section.id}-${row}-${seat}`;
+        const isUnavailable = venue.unavailable.includes(seatId);
 
         const button = document.createElement('button');
         button.type = 'button';
         button.textContent = seat;
-        button.className = 'seat available';
+        button.className = isUnavailable ? 'seat unavailable' : 'seat available';
         button.dataset.seatId = seatId;
 
-        if (venue.unavailable.includes(seatId)) {
-          button.classList.remove('available');
-          button.classList.add('unavailable');
-        }
+        // Save the seat so inspectSeat() can find it
+        seatButtons.set(seatId, {
+          id: seatId,
+          sectionName: section.name,
+          row,
+          seat,
+          price: section.price,
+          unavailable: isUnavailable,
+          button,
+        });
+
+       
+        button.addEventListener('click', () => inspectSeat(seatId));
 
         rowEl.appendChild(button);
       }
@@ -83,5 +101,33 @@ function renderVenue() {
     seatsContainer.appendChild(sectionEl);
   });
 }
+
+// Show details of a seat in the side panel
+function inspectSeat(seatId) {
+  const seatData = seatButtons.get(seatId);
+  if (!seatData) return;
+
+  // Remove the "inspected" state from the previously inspected seat
+  if (inspectedSeatId && inspectedSeatId !== seatId) {
+    const previous = seatButtons.get(inspectedSeatId);
+    if (previous) previous.button.classList.remove('inspected');
+  }
+
+  inspectedSeatId = seatId;
+  seatData.button.classList.add('inspected');
+
+  if (seatData.unavailable) {
+    seatInfo.textContent =
+      `${seatData.sectionName}, row ${seatData.row}, seat ${seatData.seat}. ` +
+      'This seat is not available.';
+    addToCartButton.disabled = true;
+  } else {
+    seatInfo.textContent =
+      `${seatData.sectionName}, row ${seatData.row}, seat ${seatData.seat}. ` +
+      `Price: ${seatData.price} ${venue.currency}`;
+    addToCartButton.disabled = false;
+  }
+}
+
 
 renderVenue();
