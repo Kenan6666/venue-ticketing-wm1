@@ -107,3 +107,8 @@ header h1 {
   color: #777;
   cursor: not-allowed;
 }
+
+.seat.inspected {
+  outline: 3px solid #2c3e50;
+  outline-offset: 1px;
+}
