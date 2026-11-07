@@ -40,3 +40,48 @@ const venue = {
 };
 
 console.log('Venue loaded:', venue.name);
+
+
+const seatsContainer = document.getElementById('seats');
+
+// Build all seat buttons from the venue data
+function renderVenue() {
+  seatsContainer.innerHTML = '';
+
+  venue.sections.forEach((section) => {
+    const sectionEl = document.createElement('div');
+    sectionEl.className = 'section';
+
+    const title = document.createElement('h3');
+    title.textContent = `${section.name} - ${section.price} ${venue.currency}`;
+    sectionEl.appendChild(title);
+
+    for (let row = 1; row <= section.rows; row++) {
+      const rowEl = document.createElement('div');
+      rowEl.className = 'seat-row';
+
+      for (let seat = 1; seat <= section.seatsPerRow; seat++) {
+        const seatId = `${section.id}-${row}-${seat}`;
+
+        const button = document.createElement('button');
+        button.type = 'button';
+        button.textContent = seat;
+        button.className = 'seat available';
+        button.dataset.seatId = seatId;
+
+        if (venue.unavailable.includes(seatId)) {
+          button.classList.remove('available');
+          button.classList.add('unavailable');
+        }
+
+        rowEl.appendChild(button);
+      }
+
+      sectionEl.appendChild(rowEl);
+    }
+
+    seatsContainer.appendChild(sectionEl);
+  });
+}
+
+renderVenue();
