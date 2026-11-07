@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Choosing theater tickets</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <header>
+    <h1>Choosing theater tickets</h1>
+  </header>
+
+  <main class="layout">
+    <section class="map-area">
+      <div class="controls">
+        <button id="zoom-in">+</button>
+        <button id="zoom-out">−</button>
+        <button id="move-up">↑</button>
+        <button id="move-down">↓</button>
+        <button id="move-left">←</button>
+        <button id="move-right">→</button>
+        <button id="reset">Reset</button>
+      </div>
+      <div class="viewport">
+        <div id="venue" class="venue">
+          <div class="stage">STAGE</div>
+          <div id="seats"></div>
+        </div>
+      </div>
+    </section>
+
+    <aside class="side">
+      <section class="details">
+        <h2>Seat</h2>
+        <p id="seat-info">Select a seat on the map</p>
+        <button id="add-to-cart" disabled>ADD TO CART</button>
+      </section>
+      <section class="cart">
+        <h2>Cart</h2>
+        <ul id="cart-items"></ul>
+        <p>Total: <span id="cart-total">0</span> AZN</p>
+      </section>
+    </aside>
+  </main>
+
+  <script src="app.js"></script>
+</body>
+</html>
