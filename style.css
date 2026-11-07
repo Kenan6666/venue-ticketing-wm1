@@ -1,0 +1,83 @@
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  font-family: Arial, sans-serif;
+  background: #f4f4f4;
+  color: #222;
+}
+
+header {
+  background: #2c3e50;
+  color: #fff;
+  padding: 12px 20px;
+}
+
+header h1 {
+  margin: 0;
+  font-size: 1.4rem;
+}
+
+.layout {
+  display: flex;
+  gap: 20px;
+  padding: 20px;
+}
+
+.map-area {
+  flex: 3;
+}
+
+.side {
+  flex: 1;
+  min-width: 260px;
+}
+
+.controls {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-bottom: 10px;
+}
+
+.controls button {
+  padding: 6px 12px;
+  cursor: pointer;
+}
+
+.viewport {
+  height: 500px;
+  overflow: hidden;
+  border: 1px solid #ccc;
+  background: #fff;
+}
+
+.venue {
+  transform-origin: center top;
+  padding: 20px;
+}
+
+.stage {
+  text-align: center;
+  background: #555;
+  color: #fff;
+  padding: 8px;
+  margin-bottom: 20px;
+}
+
+.details,
+.cart {
+  background: #fff;
+  border: 1px solid #ccc;
+  padding: 12px;
+  margin-bottom: 20px;
+}
+
+
+@media (max-width: 768px) {
+  .layout {
+    flex-direction: column;
+  }
+}
