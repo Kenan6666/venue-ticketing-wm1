@@ -55,7 +55,7 @@ header h1 {
 }
 
 .venue {
-  transform-origin: center top;
+  transform-origin: 0 0;
   padding: 20px;
 }
 
