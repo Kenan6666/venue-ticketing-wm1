@@ -44,18 +44,33 @@ console.log('Venue loaded:', venue.name);
 const seatsContainer = document.getElementById('seats');
 const seatInfo = document.getElementById('seat-info');
 const addToCartButton = document.getElementById('add-to-cart');
+const cartItemsEl = document.getElementById('cart-items');
+const cartTotalEl = document.getElementById('cart-total');
 
-
+const BASE_STATES = ['available', 'unavailable', 'in-cart'];
 // Stores every seat button so we can find it by ID later
 const seatButtons = new Map();
 
 // The seat currently being inspected (null if none)
 let inspectedSeatId = null;
+
+// Seat IDs currently in the cart, in the order they were added
+const cart = [];
+
+// Change the base state of a seat and update its CSS class
+function setSeatState(seatId, state) {
+  const seatData = seatButtons.get(seatId);
+  if (!seatData) return;
+
+  seatData.state = state;
+  seatData.button.classList.remove(...BASE_STATES);
+  seatData.button.classList.add(state);
+}
 // Build all seat buttons from the venue data
 function renderVenue() {
   seatsContainer.innerHTML = '';
   seatButtons.clear();
-
+  inspectedSeatId = null;
   venue.sections.forEach((section) => {
     const sectionEl = document.createElement('div');
     sectionEl.className = 'section';
@@ -85,10 +100,12 @@ function renderVenue() {
           row,
           seat,
           price: section.price,
-          unavailable: isUnavailable,
+          state: 'available',
           button,
         });
-
+        // Apply the starting state from the venue data
+        const startState = venue.unavailable.includes(seatId) ? 'unavailable' : 'available';
+        setSeatState(seatId, startState);
        
         button.addEventListener('click', () => inspectSeat(seatId));
 
@@ -116,21 +133,61 @@ function inspectSeat(seatId) {
   inspectedSeatId = seatId;
   seatData.button.classList.add('inspected');
 
-  if (seatData.unavailable) {
-    seatInfo.textContent =
-      `${seatData.sectionName}, row ${seatData.row}, seat ${seatData.seat}. ` +
-      'This seat is not available.';
+  const location = `${seatData.sectionName}, row ${seatData.row}, seat ${seatData.seat}.`;
+
+  if (seatData.state === 'unavailable') {
+    seatInfo.textContent = `${location} This seat is not available.`;
+    addToCartButton.disabled = true;
+  } else if (seatData.state === 'in-cart') {
+    seatInfo.textContent = `${location} This seat is already in the cart.`;
     addToCartButton.disabled = true;
   } else {
-    seatInfo.textContent =
-      `${seatData.sectionName}, row ${seatData.row}, seat ${seatData.seat}. ` +
-      `Price: ${seatData.price} ${venue.currency}`;
+    seatInfo.textContent = `${location} Price: ${seatData.price} ${venue.currency}`;
     addToCartButton.disabled = false;
   }
 }
 
+// Add the inspected seat to the cart
+function addToCart() {
+  if (!inspectedSeatId) return;
 
-renderVenue();
+  const seatData = seatButtons.get(inspectedSeatId);
+  if (!seatData) return;
+
+  // Block unavailable seats and seats that are already in the cart
+  if (seatData.state !== 'available') return;
+  if (cart.includes(seatData.id)) return;
+
+  cart.push(seatData.id);
+  setSeatState(seatData.id, 'in-cart');
+
+  renderCart();
+  // Refresh the side panel so it shows the "already in the cart" message
+  inspectSeat(seatData.id);
+}
+
+// Show the cart items and the total price
+function renderCart() {
+  cartItemsEl.innerHTML = '';
+  let total = 0;
+
+  cart.forEach((seatId) => {
+    const seatData = seatButtons.get(seatId);
+    total += seatData.price;
+
+    const item = document.createElement('li');
+    item.textContent =
+      `${seatData.sectionName}, row ${seatData.row}, seat ${seatData.seat} - ` +
+      `${seatData.price} ${venue.currency}`;
+    cartItemsEl.appendChild(item);
+  });
+
+  // The HTML already shows "AZN" after this number
+  cartTotalEl.textContent = total;
+}
+
+
+
 
 // Navigation: zoom, move and reset the venue map using CSS transform
 const venueEl = document.getElementById('venue');
@@ -181,6 +238,7 @@ function resetView() {
 }
 
 // Connect the visible buttons to their actions
+addToCartButton.addEventListener('click', addToCart);
 document.getElementById('zoom-in').addEventListener('click', () => zoom(SCALE_STEP));
 document.getElementById('zoom-out').addEventListener('click', () => zoom(-SCALE_STEP));
 document.getElementById('move-up').addEventListener('click', () => move(0, -MOVE_STEP));
@@ -189,4 +247,7 @@ document.getElementById('move-left').addEventListener('click', () => move(-MOVE_
 document.getElementById('move-right').addEventListener('click', () => move(MOVE_STEP, 0));
 document.getElementById('reset').addEventListener('click', resetView);
 
+// Start the app
+renderVenue();
+renderCart();
 applyView();
