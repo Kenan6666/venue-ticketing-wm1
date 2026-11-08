@@ -112,3 +112,8 @@ header h1 {
   outline: 3px solid #2c3e50;
   outline-offset: 1px;
 }
+
+.seat.in-cart {
+  background: #f7d58a;
+  border-color: #b8860b;
+}
