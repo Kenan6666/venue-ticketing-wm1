@@ -79,6 +79,21 @@ header h1 {
 @media (max-width: 768px) {
   .layout {
     flex-direction: column;
+    padding: 12px;
+  }
+
+  .map-area,
+  .side {
+    width: 100%;
+    min-width: 0;
+  }
+
+  .viewport {
+    height: 400px;
+  }
+
+  header h1 {
+    font-size: 1.1rem;
   }
 }
 
