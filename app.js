@@ -317,10 +317,10 @@ function resetView() {
 addToCartButton.addEventListener('click', addToCart);
 document.getElementById('zoom-in').addEventListener('click', () => zoom(SCALE_STEP));
 document.getElementById('zoom-out').addEventListener('click', () => zoom(-SCALE_STEP));
-document.getElementById('move-up').addEventListener('click', () => move(0, -MOVE_STEP));
-document.getElementById('move-down').addEventListener('click', () => move(0, MOVE_STEP));
-document.getElementById('move-left').addEventListener('click', () => move(-MOVE_STEP, 0));
-document.getElementById('move-right').addEventListener('click', () => move(MOVE_STEP, 0));
+document.getElementById('move-up').addEventListener('click', () => move(0, MOVE_STEP));
+document.getElementById('move-down').addEventListener('click', () => move(0, -MOVE_STEP));
+document.getElementById('move-left').addEventListener('click', () => move(MOVE_STEP, 0));
+document.getElementById('move-right').addEventListener('click', () => move(-MOVE_STEP, 0));
 document.getElementById('reset').addEventListener('click', resetView);
 
 // Start the app
