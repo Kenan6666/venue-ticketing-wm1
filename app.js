@@ -45,29 +45,17 @@ const seatsContainer = document.getElementById('seats');
 const seatInfo = document.getElementById('seat-info');
 const addToCartButton = document.getElementById('add-to-cart');
 
-const BASE_STATES = ['available', 'unavailable', 'in-cart'];
 
 // Stores every seat button so we can find it by ID later
 const seatButtons = new Map();
 
 // The seat currently being inspected (null if none)
 let inspectedSeatId = null;
-
-// Change the base state of a seat and update its CSS class
-function setSeatState(seatId, state) {
-  const seatData = seatButtons.get(seatId);
-  if (!seatData) return;
-
-  seatData.state = state;
-  seatData.button.classList.remove(...BASE_STATES);
-  seatData.button.classList.add(state);
-}
 // Build all seat buttons from the venue data
 function renderVenue() {
   seatsContainer.innerHTML = '';
   seatButtons.clear();
-  inspectedSeatId = null;
-  
+
   venue.sections.forEach((section) => {
     const sectionEl = document.createElement('div');
     sectionEl.className = 'section';
@@ -82,12 +70,12 @@ function renderVenue() {
 
       for (let seat = 1; seat <= section.seatsPerRow; seat++) {
         const seatId = `${section.id}-${row}-${seat}`;
-        
+        const isUnavailable = venue.unavailable.includes(seatId);
 
         const button = document.createElement('button');
         button.type = 'button';
         button.textContent = seat;
-        button.className = 'seat';
+        button.className = isUnavailable ? 'seat unavailable' : 'seat available';
         button.dataset.seatId = seatId;
 
         // Save the seat so inspectSeat() can find it
@@ -96,14 +84,11 @@ function renderVenue() {
           sectionName: section.name,
           row,
           seat,
-          state: 'available',
           price: section.price,
+          unavailable: isUnavailable,
           button,
         });
 
-        // Apply the starting state from the venue data
-        const startState = venue.unavailable.includes(seatId) ? 'unavailable' : 'available';
-        setSeatState(seatId, startState);
        
         button.addEventListener('click', () => inspectSeat(seatId));
 
@@ -131,19 +116,77 @@ function inspectSeat(seatId) {
   inspectedSeatId = seatId;
   seatData.button.classList.add('inspected');
 
- const location = `${seatData.sectionName}, row ${seatData.row}, seat ${seatData.seat}.`;
-
-  if (seatData.state === 'unavailable') {
-    seatInfo.textContent = `${location} This seat is not available.`;
-    addToCartButton.disabled = true;
-  } else if (seatData.state === 'in-cart') {
-    seatInfo.textContent = `${location} This seat is already in the cart.`;
+  if (seatData.unavailable) {
+    seatInfo.textContent =
+      `${seatData.sectionName}, row ${seatData.row}, seat ${seatData.seat}. ` +
+      'This seat is not available.';
     addToCartButton.disabled = true;
   } else {
-    seatInfo.textContent = `${location} Price: ${seatData.price} ${venue.currency}`;
+    seatInfo.textContent =
+      `${seatData.sectionName}, row ${seatData.row}, seat ${seatData.seat}. ` +
+      `Price: ${seatData.price} ${venue.currency}`;
     addToCartButton.disabled = false;
   }
 }
 
 
 renderVenue();
+
+// Navigation: zoom, move and reset the venue map using CSS transform
+const venueEl = document.getElementById('venue');
+const viewportEl = document.querySelector('.viewport');
+
+// Current camera state: position in pixels and zoom level
+const view = { x: 0, y: 0, scale: 1 };
+
+const MIN_SCALE = 0.5;
+const MAX_SCALE = 2;
+const SCALE_STEP = 0.1;
+const MOVE_STEP = 40; // pixels per click
+
+// Apply the current state to the map element
+function applyView() {
+  venueEl.style.transform = `translate(${view.x}px, ${view.y}px) scale(${view.scale})`;
+}
+
+// Keep the map inside the viewport edges when it is larger than the viewport.
+// If the map is smaller, it stays at position 0.
+function clampView() {
+  const contentWidth = venueEl.offsetWidth * view.scale;
+  const contentHeight = venueEl.offsetHeight * view.scale;
+
+  view.x = Math.min(0, Math.max(viewportEl.clientWidth - contentWidth, view.x));
+  view.y = Math.min(0, Math.max(viewportEl.clientHeight - contentHeight, view.y));
+}
+
+function zoom(delta) {
+  const next = view.scale + delta;
+  view.scale = Math.min(MAX_SCALE, Math.max(MIN_SCALE, Math.round(next * 100) / 100));
+  clampView();
+  applyView();
+}
+
+function move(dx, dy) {
+  view.x += dx;
+  view.y += dy;
+  clampView();
+  applyView();
+}
+
+function resetView() {
+  view.x = 0;
+  view.y = 0;
+  view.scale = 1;
+  applyView();
+}
+
+// Connect the visible buttons to their actions
+document.getElementById('zoom-in').addEventListener('click', () => zoom(SCALE_STEP));
+document.getElementById('zoom-out').addEventListener('click', () => zoom(-SCALE_STEP));
+document.getElementById('move-up').addEventListener('click', () => move(0, -MOVE_STEP));
+document.getElementById('move-down').addEventListener('click', () => move(0, MOVE_STEP));
+document.getElementById('move-left').addEventListener('click', () => move(-MOVE_STEP, 0));
+document.getElementById('move-right').addEventListener('click', () => move(MOVE_STEP, 0));
+document.getElementById('reset').addEventListener('click', resetView);
+
+applyView();
