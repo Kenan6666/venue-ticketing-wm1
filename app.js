@@ -45,17 +45,29 @@ const seatsContainer = document.getElementById('seats');
 const seatInfo = document.getElementById('seat-info');
 const addToCartButton = document.getElementById('add-to-cart');
 
+const BASE_STATES = ['available', 'unavailable', 'in-cart'];
 
 // Stores every seat button so we can find it by ID later
 const seatButtons = new Map();
 
 // The seat currently being inspected (null if none)
 let inspectedSeatId = null;
+
+// Change the base state of a seat and update its CSS class
+function setSeatState(seatId, state) {
+  const seatData = seatButtons.get(seatId);
+  if (!seatData) return;
+
+  seatData.state = state;
+  seatData.button.classList.remove(...BASE_STATES);
+  seatData.button.classList.add(state);
+}
 // Build all seat buttons from the venue data
 function renderVenue() {
   seatsContainer.innerHTML = '';
   seatButtons.clear();
-
+  inspectedSeatId = null;
+  
   venue.sections.forEach((section) => {
     const sectionEl = document.createElement('div');
     sectionEl.className = 'section';
@@ -70,12 +82,12 @@ function renderVenue() {
 
       for (let seat = 1; seat <= section.seatsPerRow; seat++) {
         const seatId = `${section.id}-${row}-${seat}`;
-        const isUnavailable = venue.unavailable.includes(seatId);
+        
 
         const button = document.createElement('button');
         button.type = 'button';
         button.textContent = seat;
-        button.className = isUnavailable ? 'seat unavailable' : 'seat available';
+        button.className = 'seat';
         button.dataset.seatId = seatId;
 
         // Save the seat so inspectSeat() can find it
@@ -84,11 +96,14 @@ function renderVenue() {
           sectionName: section.name,
           row,
           seat,
+          state: 'available',
           price: section.price,
-          unavailable: isUnavailable,
           button,
         });
 
+        // Apply the starting state from the venue data
+        const startState = venue.unavailable.includes(seatId) ? 'unavailable' : 'available';
+        setSeatState(seatId, startState);
        
         button.addEventListener('click', () => inspectSeat(seatId));
 
@@ -116,15 +131,16 @@ function inspectSeat(seatId) {
   inspectedSeatId = seatId;
   seatData.button.classList.add('inspected');
 
-  if (seatData.unavailable) {
-    seatInfo.textContent =
-      `${seatData.sectionName}, row ${seatData.row}, seat ${seatData.seat}. ` +
-      'This seat is not available.';
+ const location = `${seatData.sectionName}, row ${seatData.row}, seat ${seatData.seat}.`;
+
+  if (seatData.state === 'unavailable') {
+    seatInfo.textContent = `${location} This seat is not available.`;
+    addToCartButton.disabled = true;
+  } else if (seatData.state === 'in-cart') {
+    seatInfo.textContent = `${location} This seat is already in the cart.`;
     addToCartButton.disabled = true;
   } else {
-    seatInfo.textContent =
-      `${seatData.sectionName}, row ${seatData.row}, seat ${seatData.seat}. ` +
-      `Price: ${seatData.price} ${venue.currency}`;
+    seatInfo.textContent = `${location} Price: ${seatData.price} ${venue.currency}`;
     addToCartButton.disabled = false;
   }
 }
