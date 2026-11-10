@@ -328,3 +328,79 @@ renderVenue();
 loadCart();
 renderCart();
 applyView();
+
+// ---- Bonus: 
+const DRAG_THRESHOLD = 4; 
+let dragStart = null;     // stores the mouse position when the button is pressed
+let wasDragged = false;   
+
+
+viewportEl.addEventListener('wheel', (event) => {
+  event.preventDefault();
+
+  const rect = viewportEl.getBoundingClientRect();
+  const mouseX = event.clientX - rect.left;
+  const mouseY = event.clientY - rect.top;
+
+  const oldScale = view.scale;
+  const factor = event.deltaY < 0 ? 1.1 : 1 / 1.1;
+  const newScale = Math.min(MAX_SCALE, Math.max(MIN_SCALE, oldScale * factor));
+  if (newScale === oldScale) return;
+
+  
+  view.x = mouseX - (mouseX - view.x) * (newScale / oldScale);
+  view.y = mouseY - (mouseY - view.y) * (newScale / oldScale);
+  view.scale = newScale;
+
+  clampView();
+  applyView();
+}, { passive: false });
+
+viewportEl.addEventListener('pointerdown', (event) => {
+  if (event.button !== 0) return;
+
+  wasDragged = false;
+  dragStart = {
+    x: event.clientX,
+    y: event.clientY,
+    viewX: view.x,
+    viewY: view.y,
+    moved: false,
+  };
+});
+
+
+window.addEventListener('pointermove', (event) => {
+  if (!dragStart) return;
+
+  const dx = event.clientX - dragStart.x;
+  const dy = event.clientY - dragStart.y;
+
+  // Ignore tiny movements, so a normal click still selects a seat
+  if (!dragStart.moved && Math.hypot(dx, dy) < DRAG_THRESHOLD) return;
+
+  dragStart.moved = true;
+  viewportEl.classList.add('dragging');
+
+  view.x = dragStart.viewX + dx;
+  view.y = dragStart.viewY + dy;
+  clampView();
+  applyView();
+});
+
+
+window.addEventListener('pointerup', () => {
+  if (!dragStart) return;
+
+  wasDragged = dragStart.moved;
+  dragStart = null;
+  viewportEl.classList.remove('dragging');
+});
+
+viewportEl.addEventListener('click', (event) => {
+  if (!wasDragged) return;
+
+  event.stopPropagation();
+  event.preventDefault();
+  wasDragged = false;
+}, true);
