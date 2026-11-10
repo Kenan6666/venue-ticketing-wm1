@@ -52,6 +52,9 @@ header h1 {
   overflow: hidden;
   border: 1px solid #ccc;
   background: #fff;
+  cursor: grab;
+  user-select: none;
+  touch-action: none;
 }
 
 .venue {
@@ -131,4 +134,16 @@ header h1 {
 .seat.in-cart {
   background: #f7d58a;
   border-color: #b8860b;
+}
+
+.cart li {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 6px;
+}
+
+.viewport.dragging {
+  cursor: grabbing;
 }
